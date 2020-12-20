@@ -13,8 +13,8 @@
 			</div>
 			<div class="game-info">
 				<h2>{{showScore}}</h2>
-				<button @click="startGame">{{centerButton}}</button>
-				<!-- <p data-action="lose">Sorry, you lost after <span data-round="0"></span> rounds!</p> -->
+				<button @click="startOrStop">{{centerButton}}</button>
+				<p v-if="isWrong">Sorry, you lost after {{round}} rounds!</p>
 			</div>
 			<div class="game-options">
 				<h2>Game Options:</h2>
@@ -52,8 +52,7 @@ export default {
     isClickable: false,
     isWon: false,
     isWrong: false,
-    strict: false,
-    score: 0,
+    round: 0,
     sequence: [],
     sequenceInterval: null,
     playerSequence: [],
@@ -69,7 +68,7 @@ export default {
       if (this.isWon) {
         return "Play Again?";
       }
-      return "Round: " + this.score;
+      return "Round: " + this.round;
     }
   },
   methods: {
@@ -88,6 +87,12 @@ export default {
       this.normal = false;
       this.hard = true;
     },
+    startOrStop() {
+      if ((this.centerButton === 'START') || (this.centerButton === 'Winner!') ||
+          (this.centerButton === 'Super Winner!')) {
+        this.startGame();
+      } else this.stopGame();
+    },
     startGame() {
       this.playing = true;
       this.sequence = [];
@@ -95,13 +100,26 @@ export default {
       this.centerButton = "RESET";
       this.isWon = false;
       this.isWrong = false;
-      this.score = 0;
+      this.round = 1;
       clearInterval(this.sequenceInterval);
       this.showSequence();
+    },
+    stopGame() {
+      this.playing = false;
+      this.playerSequence = [];
+      this.sequence = [];
+      this.centerButton = "Wrong!";
+      this.isWrong = true;
+      this.isClickable = false;
+      clearInterval(this.sequenceInterval);
+      setTimeout(() => {
+        this.centerButton = "START";
+      }, 2500);
     },
     clicked(tile) {
       if (this.isClickable) {
         this.lightUp(tile);
+        this.soundOn(tile);
         this.playerSequence.push(tile);
         this.checkWinLose();
       }
@@ -109,22 +127,16 @@ export default {
     checkWinLose() {
       for (let i = 0; i < this.playerSequence.length; i++) {
         if (this.playerSequence[i] !== this.sequence[i]) {
-          this.playerSequence = [];
-          this.sequence = [];
-          this.centerButton = "Wrong!";
-          this.isWrong = true;
-          setTimeout(() => {
-            this.centerButton = "RESET";
-            this.isWrong = false;
-          }, 1000);
-          this.showSequence(true);
+          return this.stopGame();
         }
       }
       if (this.playerSequence.length === this.sequence.length) {
         this.playerSequence = [];
-        this.score++;
-        if (this.score === 20) {
-          this.centerButton = "Winner!";
+        this.round++;
+        if (this.round > 20) {
+          this.hard
+            ? this.centerButton = "Super Winner!"
+            : this.centerButton = "Winner!";
           this.isClickable = false;
           this.isWon = true;
         } else {
@@ -138,6 +150,11 @@ export default {
         this.isLit[tile] = false;
       }, 300);
     },
+    soundOn(tile) {
+      const req = require(`@/assets/sounds/${tile}.mp3`);
+      const audio = new Audio(req);
+      audio.play();
+    },
     showSequence(redo) {
       let currentIndex = 0;
       let speed;
@@ -149,8 +166,6 @@ export default {
       this.isClickable = false;
       if (!redo) {
         this.sequence.push(Math.floor(Math.random() * 4 + 1));
-        console.log(this.sequence, currentIndex);
-
       }
       this.sequenceInterval = setInterval(() => {
         if (currentIndex >= this.sequence.length) {
@@ -158,6 +173,7 @@ export default {
           return (this.isClickable = true);
         }
         this.lightUp(this.sequence[currentIndex]);
+        this.soundOn(this.sequence[currentIndex]);
         currentIndex++;
       }, speed);
     }
@@ -228,10 +244,10 @@ p[data-action="lose"] {
 	height: 295px;
 	-webkit-border-radius: 150px 150px 150px 150px;
 	border-radius: 150px 150px 150px 150px;
-    -moz-box-shadow: 2px 1px 12px #aaa;
-    -webkit-box-shadow: 2px 1px 12px #aaa;
-    -o-box-shadow: 2px 1px 12px #aaa;
-    box-shadow: 2px 1px 12px #aaa;
+  -moz-box-shadow: 2px 1px 12px #aaa;
+  -webkit-box-shadow: 2px 1px 12px #aaa;
+  -o-box-shadow: 2px 1px 12px #aaa;
+  box-shadow: 2px 1px 12px #aaa;
 }
 
 .circle {
