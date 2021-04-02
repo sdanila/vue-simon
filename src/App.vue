@@ -35,7 +35,6 @@
           v-on:change="hardOn"
         >hard<br>
 			</div>
-		<div data-action="sound"></div>
 	</div>
 </template>
 
@@ -100,7 +99,7 @@ export default {
       this.centerButton = "RESET";
       this.isWon = false;
       this.isWrong = false;
-      this.round = 1;
+      this.round = 0;
       clearInterval(this.sequenceInterval);
       this.showSequence();
     },
@@ -135,8 +134,8 @@ export default {
         this.round++;
         if (this.round > 20) {
           this.hard
-            ? this.centerButton = "Super Winner!"
-            : this.centerButton = "Winner!";
+            ? this.centerButton = "Владик лох!"
+            : this.centerButton = "Денис лох!";
           this.isClickable = false;
           this.isWon = true;
         } else {
@@ -326,6 +325,14 @@ p[data-action="lose"] {
 .hoverable:hover {
 	cursor: pointer;
 }
+
+.dud {
+  margin-top: 500px;
+  border: 1px solid black;
+  position: relative;
+  border-radius: 100%;
+}
+
 
 footer {
 	position: absolute;
